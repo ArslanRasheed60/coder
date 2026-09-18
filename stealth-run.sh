@@ -1,8 +1,8 @@
 #!/bin/bash
-echo "=== Interview Coder - Invisible Edition (No Paywall) ==="
+echo "=== Buddy Boy - Desktop AI Coding Companion ==="
 echo
-echo "IMPORTANT: This app is designed to be INVISIBLE by default!"
-echo "Use the keyboard shortcuts to control it:"
+echo "Welcome to Buddy Boy!"
+echo "Use the keyboard shortcuts to control the floating companion window:"
 echo
 echo "- Toggle Visibility: Cmd+B"
 echo "- Take Screenshot: Cmd+H"
@@ -12,7 +12,7 @@ echo "- Adjust Opacity: Cmd+[ (decrease) / Cmd+] (increase)"
 echo "- Reset View: Cmd+R"
 echo "- Quit App: Cmd+Q"
 echo
-echo "When you press Cmd+B, the window will toggle between visible and invisible."
+echo "When you press Cmd+B, the companion window will toggle between visible and hidden."
 echo "If movement shortcuts aren't working, try making the window visible first with Cmd+B."
 echo
 
@@ -20,10 +20,10 @@ echo
 cd "$(dirname "$0")"
 
 echo "=== Step 1: Creating required directories... ==="
-mkdir -p ~/Library/Application\ Support/interview-coder-v1/temp
-mkdir -p ~/Library/Application\ Support/interview-coder-v1/cache
-mkdir -p ~/Library/Application\ Support/interview-coder-v1/screenshots
-mkdir -p ~/Library/Application\ Support/interview-coder-v1/extra_screenshots
+mkdir -p ~/Library/Application\ Support/buddy-boy/temp
+mkdir -p ~/Library/Application\ Support/buddy-boy/cache
+mkdir -p ~/Library/Application\ Support/buddy-boy/screenshots
+mkdir -p ~/Library/Application\ Support/buddy-boy/extra_screenshots
 
 echo "=== Step 2: Cleaning previous builds... ==="
 echo "Removing old build files to ensure a fresh start..."
@@ -34,13 +34,13 @@ echo "=== Step 3: Building application... ==="
 echo "This may take a moment..."
 npm run build
 
-echo "=== Step 4: Launching in stealth mode... ==="
-echo "Remember: Cmd+B to make it visible, Cmd+[ and Cmd+] to adjust opacity!"
+echo "=== Step 4: Launching Buddy Boy companion... ==="
+echo "Remember: Cmd+B to toggle window, Cmd+[ and Cmd+] to adjust opacity!"
 echo
 export NODE_ENV=production
 npx electron ./dist-electron/main.js &
 
-echo "App is now running invisibly! Press Cmd+B to make it visible."
+echo "Buddy Boy is now running! Press Cmd+B to bring the HUD into view."
 echo
 echo "If you encounter any issues:"
 echo "1. Make sure you've installed dependencies with 'npm install'"

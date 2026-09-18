@@ -8,6 +8,11 @@ import { app, BrowserWindow, dialog } from "electron"
 import { OpenAI } from "openai"
 import { configHelper } from "./ConfigHelper"
 import Anthropic from '@anthropic-ai/sdk';
+import { 
+  isVisionCapableOpenAIModel, 
+  formatOpenAIMessages, 
+  buildOpenAICompletionParams 
+} from "./ModelHelper";
 
 // Interface for Gemini API requests
 interface GeminiMessage {
@@ -473,34 +478,41 @@ export class ProcessingHelper {
           }
         }
 
-        // Use OpenAI for processing
-        const messages = [
+        const extractionModel = config.extractionModel || "gpt-4o";
+
+        // Check if the selected model supports images
+        if (!isVisionCapableOpenAIModel(extractionModel)) {
+          return {
+            success: false,
+            error: `Model "${extractionModel}" is text-only and does not support image analysis. Please select a vision-capable model (such as o1, gpt-4o, gpt-4o-mini, or gpt-4.5-preview) for problem extraction in Settings.`
+          };
+        }
+
+        // Format messages appropriately for thinking vs non-thinking models
+        const systemPrompt = "You are Buddy Boy, an expert AI coding companion. Analyze the screenshot of the coding problem or task and extract all relevant information. Return the information in JSON format with these fields: problem_statement, constraints, example_input, example_output. Just return the structured JSON without any other text.";
+        const userContent = [
           {
-            role: "system" as const, 
-            content: "You are a coding challenge interpreter. Analyze the screenshot of the coding problem and extract all relevant information. Return the information in JSON format with these fields: problem_statement, constraints, example_input, example_output. Just return the structured JSON without any other text."
+            type: "text" as const, 
+            text: `Extract the coding problem details from these screenshots. Return in JSON format. Preferred coding language we gonna use for this problem is ${language}.`
           },
-          {
-            role: "user" as const,
-            content: [
-              {
-                type: "text" as const, 
-                text: `Extract the coding problem details from these screenshots. Return in JSON format. Preferred coding language we gonna use for this problem is ${language}.`
-              },
-              ...imageDataList.map(data => ({
-                type: "image_url" as const,
-                image_url: { url: `data:image/png;base64,${data}` }
-              }))
-            ]
-          }
+          ...imageDataList.map(data => ({
+            type: "image_url" as const,
+            image_url: { url: `data:image/png;base64,${data}` }
+          }))
         ];
 
-        // Send to OpenAI Vision API
-        const extractionResponse = await this.openaiClient.chat.completions.create({
-          model: config.extractionModel || "gpt-4.1",
+        const messages = formatOpenAIMessages(extractionModel, systemPrompt, userContent);
+        const requestParams = buildOpenAICompletionParams({
+          model: extractionModel,
           messages: messages,
-          max_tokens: 4000,
-          temperature: 0.2
+          defaultMaxTokens: 4000
         });
+
+        // Send to OpenAI API with cancel signal
+        const extractionResponse = await this.openaiClient.chat.completions.create(
+          requestParams as any,
+          { signal }
+        );
 
         // Parse the response
         try {
@@ -531,7 +543,7 @@ export class ProcessingHelper {
               role: "user",
               parts: [
                 {
-                  text: `You are a coding challenge interpreter. Analyze the screenshots of the coding problem and extract all relevant information. Return the information in JSON format with these fields: problem_statement, constraints, example_input, example_output. Just return the structured JSON without any other text. Preferred coding language we gonna use for this problem is ${language}.`
+                  text: `You are Buddy Boy, an expert AI coding companion. Analyze the screenshots of the coding problem or task and extract all relevant information. Return the information in JSON format with these fields: problem_statement, constraints, example_input, example_output. Just return the structured JSON without any other text. Preferred coding language we gonna use for this problem is ${language}.`
                 },
                 ...imageDataList.map(data => ({
                   inlineData: {
@@ -774,15 +786,20 @@ Your solution should be efficient, well-commented, and handle edge cases.
         }
         
         // Send to OpenAI API
-        const solutionResponse = await this.openaiClient.chat.completions.create({
-          model: config.solutionModel || "gpt-4.1",
-          messages: [
-            { role: "system", content: "You are an expert coding interview assistant. Provide clear, optimal solutions with detailed explanations." },
-            { role: "user", content: promptText }
-          ],
-          max_tokens: 4000,
-          temperature: 0.2
+        const solutionModel = config.solutionModel || "o3-mini";
+        const systemPrompt = "You are Buddy Boy, an expert AI coding companion and assistant. Provide clear, optimal solutions with detailed explanations.";
+        const messages = formatOpenAIMessages(solutionModel, systemPrompt, promptText);
+        const requestParams = buildOpenAICompletionParams({
+          model: solutionModel,
+          messages: messages,
+          defaultMaxTokens: 4000,
+          reasoningEffort: "medium"
         });
+
+        const solutionResponse = await this.openaiClient.chat.completions.create(
+          requestParams as any,
+          { signal }
+        );
 
         responseContent = solutionResponse.choices[0].message.content;
       } else if (config.apiProvider === "gemini")  {
@@ -801,7 +818,7 @@ Your solution should be efficient, well-commented, and handle edge cases.
               role: "user",
               parts: [
                 {
-                  text: `You are an expert coding interview assistant. Provide a clear, optimal solution with detailed explanations for this problem:\n\n${promptText}`
+                  text: `You are Buddy Boy, an expert AI coding companion and assistant. Provide a clear, optimal solution with detailed explanations for this problem:\n\n${promptText}`
                 }
               ]
             }
@@ -850,7 +867,7 @@ Your solution should be efficient, well-commented, and handle edge cases.
               content: [
                 {
                   type: "text" as const,
-                  text: `You are an expert coding interview assistant. Provide a clear, optimal solution with detailed explanations for this problem:\n\n${promptText}`
+                  text: `You are Buddy Boy, an expert AI coding companion and assistant. Provide a clear, optimal solution with detailed explanations for this problem:\n\n${promptText}`
                 }
               ]
             }
@@ -1017,10 +1034,17 @@ Your solution should be efficient, well-commented, and handle edge cases.
           };
         }
         
-        const messages = [
-          {
-            role: "system" as const, 
-            content: `You are a coding interview assistant helping debug and improve solutions. Analyze these screenshots which include either error messages, incorrect outputs, or test cases, and provide detailed debugging help.
+        const debuggingModel = config.debuggingModel || "gpt-4o";
+
+        // Check if selected debugging model supports images
+        if (!isVisionCapableOpenAIModel(debuggingModel)) {
+          return {
+            success: false,
+            error: `Model "${debuggingModel}" is text-only and does not support image analysis. Please select a vision-capable model (such as o1, gpt-4o, gpt-4o-mini, or gpt-4.5-preview) for debugging in Settings.`
+          };
+        }
+
+        const debugSystemPrompt = `You are Buddy Boy, an expert AI coding companion helping debug and improve code. Analyze these screenshots which include either error messages, incorrect outputs, or test cases, and provide detailed debugging help.
 
 Your response MUST follow this exact structure with these section headers (use ### for headers):
 ### Issues Identified
@@ -1038,26 +1062,30 @@ Here provide a clear explanation of why the changes are needed
 ### Key Points
 - Summary bullet points of the most important takeaways
 
-If you include code examples, use proper markdown code blocks with language specification (e.g. \`\`\`java).`
-          },
+If you include code examples, use proper markdown code blocks with language specification (e.g. \`\`\`java).`;
+
+        const debugUserContent = [
           {
-            role: "user" as const,
-            content: [
-              {
-                type: "text" as const, 
-                text: `I'm solving this coding problem: "${problemInfo.problem_statement}" in ${language}. I need help with debugging or improving my solution. Here are screenshots of my code, the errors or test cases. Please provide a detailed analysis with:
+            type: "text" as const, 
+            text: `I'm solving this coding problem: "${problemInfo.problem_statement}" in ${language}. I need help with debugging or improving my solution. Here are screenshots of my code, the errors or test cases. Please provide a detailed analysis with:
 1. What issues you found in my code
 2. Specific improvements and corrections
 3. Any optimizations that would make the solution better
 4. A clear explanation of the changes needed` 
-              },
-              ...imageDataList.map(data => ({
-                type: "image_url" as const,
-                image_url: { url: `data:image/png;base64,${data}` }
-              }))
-            ]
-          }
+          },
+          ...imageDataList.map(data => ({
+            type: "image_url" as const,
+            image_url: { url: `data:image/png;base64,${data}` }
+          }))
         ];
+
+        const messages = formatOpenAIMessages(debuggingModel, debugSystemPrompt, debugUserContent);
+        const requestParams = buildOpenAICompletionParams({
+          model: debuggingModel,
+          messages: messages,
+          defaultMaxTokens: 4000,
+          reasoningEffort: "medium"
+        });
 
         if (mainWindow) {
           mainWindow.webContents.send("processing-status", {
@@ -1066,12 +1094,10 @@ If you include code examples, use proper markdown code blocks with language spec
           });
         }
 
-        const debugResponse = await this.openaiClient.chat.completions.create({
-          model: config.debuggingModel || "gpt-4.1",
-          messages: messages,
-          max_tokens: 4000,
-          temperature: 0.2
-        });
+        const debugResponse = await this.openaiClient.chat.completions.create(
+          requestParams as any,
+          { signal }
+        );
         
         debugContent = debugResponse.choices[0].message.content;
       } else if (config.apiProvider === "gemini")  {
@@ -1084,7 +1110,7 @@ If you include code examples, use proper markdown code blocks with language spec
         
         try {
           const debugPrompt = `
-You are a coding interview assistant helping debug and improve solutions. Analyze these screenshots which include either error messages, incorrect outputs, or test cases, and provide detailed debugging help.
+You are Buddy Boy, an expert AI coding companion helping debug and improve code. Analyze these screenshots which include either error messages, incorrect outputs, or test cases, and provide detailed debugging help.
 
 I'm solving this coding problem: "${problemInfo.problem_statement}" in ${language}. I need help with debugging or improving my solution.
 
@@ -1165,7 +1191,7 @@ If you include code examples, use proper markdown code blocks with language spec
         
         try {
           const debugPrompt = `
-You are a coding interview assistant helping debug and improve solutions. Analyze these screenshots which include either error messages, incorrect outputs, or test cases, and provide detailed debugging help.
+You are Buddy Boy, an expert AI coding companion helping debug and improve code. Analyze these screenshots which include either error messages, incorrect outputs, or test cases, and provide detailed debugging help.
 
 I'm solving this coding problem: "${problemInfo.problem_statement}" in ${language}. I need help with debugging or improving my solution.
 

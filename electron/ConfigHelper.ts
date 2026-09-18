@@ -60,13 +60,13 @@ export class ConfigHelper extends EventEmitter {
    */
   private sanitizeModelSelection(model: string, provider: "openai" | "gemini" | "anthropic"): string {
     if (provider === "openai") {
-      // Only allow gpt-4.1 and gpt-4.1-mini for OpenAI
-      const allowedModels = ['gpt-4.1', 'gpt-4.1-mini'];
-      if (!allowedModels.includes(model)) {
-        console.warn(`Invalid OpenAI model specified: ${model}. Using default model: gpt-4.1`);
-        return 'gpt-4.1';
+      if (!model || typeof model !== 'string' || !model.trim()) {
+        return 'gpt-4o';
       }
-      return model;
+      // Allow all OpenAI models: thinking models (o1, o3-mini, o1-mini, o1-preview),
+      // non-thinking models (gpt-4.5-preview, gpt-4o, gpt-4o-mini, gpt-4.1, gpt-4.1-mini, chatgpt-4o-latest, gpt-4-turbo, gpt-4, gpt-3.5-turbo),
+      // and any custom model IDs.
+      return model.trim();
     } else if (provider === "gemini")  {
       // Only allow gemini-1.5-pro and gemini-2.0-flash for Gemini
       const allowedModels = ['gemini-1.5-pro', 'gemini-2.0-flash'];
@@ -171,9 +171,9 @@ export class ConfigHelper extends EventEmitter {
       // If provider is changing, reset models to the default for that provider
       if (updates.apiProvider && updates.apiProvider !== currentConfig.apiProvider) {
         if (updates.apiProvider === "openai") {
-          updates.extractionModel = "gpt-4.1";
-          updates.solutionModel = "gpt-4.1";
-          updates.debuggingModel = "gpt-4.1";
+          updates.extractionModel = "gpt-4o";
+          updates.solutionModel = "o3-mini";
+          updates.debuggingModel = "gpt-4o";
         } else if (updates.apiProvider === "anthropic") {
           updates.extractionModel = "claude-3-7-sonnet-20250219";
           updates.solutionModel = "claude-3-7-sonnet-20250219";

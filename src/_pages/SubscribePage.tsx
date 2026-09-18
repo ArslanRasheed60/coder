@@ -61,15 +61,10 @@ export default function SubscribePage({ user }: SubscribePageProps) {
       <div className="w-full px-6">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-white">
-            Welcome to Interview Coder
+            Welcome to Buddy Boy
           </h2>
           <p className="text-gray-400 text-sm mt-2 mb-6">
-            To continue using Interview Coder, you'll need to subscribe
-            ($60/month)
-          </p>
-          <p className="text-gray-500 text-[11px] -mt-4 mb-6 italic">
-            * Undetectability may not work with some versions of MacOS. See our
-            help center for more details
+            To continue using Buddy Boy, you'll need a subscription
           </p>
 
           {/* Keyboard Shortcuts */}

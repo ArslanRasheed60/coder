@@ -1,3 +1,14 @@
+export interface AppConfig {
+  apiKey: string;
+  apiProvider?: "openai" | "gemini" | "anthropic";
+  extractionModel?: string;
+  solutionModel?: string;
+  debuggingModel?: string;
+  language?: string;
+  opacity?: number;
+  model?: string;
+}
+
 export interface ElectronAPI {
   // Original methods
   openSubscriptionPortal: (authData: {
@@ -39,14 +50,20 @@ export interface ElectronAPI {
   triggerMoveRight: () => Promise<{ success: boolean; error?: string }>
   triggerMoveUp: () => Promise<{ success: boolean; error?: string }>
   triggerMoveDown: () => Promise<{ success: boolean; error?: string }>
-  onSubscriptionUpdated: (callback: () => void) => () => void
-  onSubscriptionPortalClosed: (callback: () => void) => () => void
-  startUpdate: () => Promise<{ success: boolean; error?: string }>
-  installUpdate: () => void
-  onUpdateAvailable: (callback: (info: any) => void) => () => void
-  onUpdateDownloaded: (callback: (info: any) => void) => () => void
-
-  decrementCredits: () => Promise<void>
+  getLanguage: () => Promise<string>
+  setLanguage: (language: string) => Promise<void>
+  getOpacity: () => Promise<number>
+  setOpacity: (opacity: number) => Promise<void>
+  onHideWindow: (callback: () => void) => () => void
+  onShowWindow: (callback: () => void) => () => void
+  onToggleWindow: (callback: () => void) => () => void
+  onToggleBackdrop: (callback: () => void) => () => void
+  onTakeScreenshot: (callback: () => void) => () => void
+  onProcessScreenshots: (callback: () => void) => () => void
+  onStartMove: () => Promise<void>
+  onStopMove: () => Promise<void>
+  onMoveWindow: (callback: (delta: { x: number; y: number }) => void) => () => void
+  getCredits: () => Promise<number>
   setInitialCredits: (credits: number) => Promise<void>
   onCreditsUpdated: (callback: (credits: number) => void) => () => void
   onOutOfCredits: (callback: () => void) => () => void
@@ -54,8 +71,8 @@ export interface ElectronAPI {
   getPlatform: () => string
   
   // New methods for OpenAI integration
-  getConfig: () => Promise<{ apiKey: string; model: string }>
-  updateConfig: (config: { apiKey?: string; model?: string }) => Promise<boolean>
+  getConfig: () => Promise<AppConfig>
+  updateConfig: (config: Partial<AppConfig>) => Promise<boolean>
   checkApiKey: () => Promise<boolean>
   validateApiKey: (apiKey: string) => Promise<{ valid: boolean; error?: string }>
   openLink: (url: string) => void

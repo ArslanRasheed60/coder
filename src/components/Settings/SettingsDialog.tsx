@@ -19,6 +19,8 @@ type AIModel = {
   id: string;
   name: string;
   description: string;
+  badge?: string;
+  isThinking?: boolean;
 };
 
 type ModelCategory = {
@@ -35,17 +37,56 @@ const modelCategories: ModelCategory[] = [
   {
     key: 'extractionModel',
     title: 'Problem Extraction',
-    description: 'Model used to analyze screenshots and extract problem details',
+    description: 'Model used to analyze screenshots and extract problem details (requires Vision)',
     openaiModels: [
       {
+        id: "gpt-4o",
+        name: "GPT-4o",
+        description: "Best balance of speed and vision accuracy for extracting problem requirements",
+        badge: "Vision • Recommended"
+      },
+      {
+        id: "gpt-4o-mini",
+        name: "GPT-4o Mini",
+        description: "Fast, cost-effective vision model for problem extraction",
+        badge: "Vision • Fast"
+      },
+      {
+        id: "o1",
+        name: "o1",
+        description: "Flagship thinking model with vision capabilities for intricate problem diagrams",
+        badge: "Thinking • Vision",
+        isThinking: true
+      },
+      {
+        id: "gpt-4.5-preview",
+        name: "GPT-4.5 Preview",
+        description: "OpenAI's largest & most advanced general knowledge model with vision",
+        badge: "Vision • Advanced"
+      },
+      {
+        id: "chatgpt-4o-latest",
+        name: "ChatGPT-4o Latest",
+        description: "Dynamic model continuously updated with ChatGPT's latest vision improvements",
+        badge: "Vision • Dynamic"
+      },
+      {
+        id: "gpt-4-turbo",
+        name: "GPT-4 Turbo",
+        description: "Previous-generation high-capability vision model",
+        badge: "Vision"
+      },
+      {
         id: "gpt-4.1",
-        name: "gpt-4.1",
-        description: "Best overall performance for problem extraction"
+        name: "GPT-4.1",
+        description: "High-intelligence multimodal model for visual analysis",
+        badge: "Vision"
       },
       {
         id: "gpt-4.1-mini",
-        name: "gpt-4.1-mini",
-        description: "Faster, more cost-effective option"
+        name: "GPT-4.1 Mini",
+        description: "Fast, lightweight multimodal model for visual extraction",
+        badge: "Vision • Fast"
       }
     ],
     geminiModels: [
@@ -81,17 +122,89 @@ const modelCategories: ModelCategory[] = [
   {
     key: 'solutionModel',
     title: 'Solution Generation',
-    description: 'Model used to generate coding solutions',
+    description: 'Model used to generate optimal coding solutions and explanations',
     openaiModels: [
       {
+        id: "o3-mini",
+        name: "o3-mini",
+        description: "State-of-the-art fast reasoning model specialized for coding & algorithms",
+        badge: "Thinking • Recommended",
+        isThinking: true
+      },
+      {
+        id: "o1",
+        name: "o1",
+        description: "Flagship deep reasoning model for complex algorithmic puzzles and edge cases",
+        badge: "Deep Thinking",
+        isThinking: true
+      },
+      {
+        id: "o1-mini",
+        name: "o1-mini",
+        description: "Fast, cost-effective reasoning model tailored for math and coding",
+        badge: "Thinking • Fast",
+        isThinking: true
+      },
+      {
+        id: "o1-preview",
+        name: "o1-preview",
+        description: "Original preview reasoning model",
+        badge: "Thinking",
+        isThinking: true
+      },
+      {
+        id: "gpt-4.5-preview",
+        name: "GPT-4.5 Preview",
+        description: "OpenAI's largest model - supreme code quality, explanations, and steerability",
+        badge: "Advanced"
+      },
+      {
+        id: "gpt-4o",
+        name: "GPT-4o",
+        description: "Flagship omni model - fast execution, reliable coding patterns",
+        badge: "Fast & Strong"
+      },
+      {
+        id: "gpt-4o-mini",
+        name: "GPT-4o Mini",
+        description: "Lightweight and fast option for straightforward coding problems",
+        badge: "Fast"
+      },
+      {
+        id: "chatgpt-4o-latest",
+        name: "ChatGPT-4o Latest",
+        description: "Reflects the latest conversational & coding improvements from ChatGPT",
+        badge: "Dynamic"
+      },
+      {
+        id: "gpt-4-turbo",
+        name: "GPT-4 Turbo",
+        description: "High-capacity standard GPT-4 Turbo model",
+        badge: "High Capacity"
+      },
+      {
+        id: "gpt-4",
+        name: "GPT-4",
+        description: "Standard legacy GPT-4 model",
+        badge: "Standard"
+      },
+      {
+        id: "gpt-3.5-turbo",
+        name: "GPT-3.5 Turbo",
+        description: "Legacy fast, budget-friendly text model",
+        badge: "Legacy"
+      },
+      {
         id: "gpt-4.1",
-        name: "gpt-4.1",
-        description: "Strong overall performance for coding tasks"
+        name: "GPT-4.1",
+        description: "High intelligence for coding and detailed explanations",
+        badge: "Fast & Strong"
       },
       {
         id: "gpt-4.1-mini",
-        name: "gpt-4.1-mini",
-        description: "Faster, more cost-effective option"
+        name: "GPT-4.1 Mini",
+        description: "Fast and cost-effective option for code generation",
+        badge: "Fast"
       }
     ],
     geminiModels: [
@@ -127,17 +240,56 @@ const modelCategories: ModelCategory[] = [
   {
     key: 'debuggingModel',
     title: 'Debugging',
-    description: 'Model used to debug and improve solutions',
+    description: 'Model used to debug and improve solutions from error screenshots (requires Vision)',
     openaiModels: [
       {
+        id: "o1",
+        name: "o1",
+        description: "Flagship reasoning model with vision - deep reasoning to identify elusive bugs & test failures",
+        badge: "Thinking • Vision",
+        isThinking: true
+      },
+      {
+        id: "gpt-4o",
+        name: "GPT-4o",
+        description: "Best for rapidly analyzing screenshots of error messages, terminal output, and code",
+        badge: "Vision • Recommended"
+      },
+      {
+        id: "gpt-4o-mini",
+        name: "GPT-4o Mini",
+        description: "Faster, cost-effective option for analyzing debug screenshots",
+        badge: "Vision • Fast"
+      },
+      {
+        id: "gpt-4.5-preview",
+        name: "GPT-4.5 Preview",
+        description: "Advanced visual code inspection and comprehensive error corrections",
+        badge: "Vision • Advanced"
+      },
+      {
+        id: "chatgpt-4o-latest",
+        name: "ChatGPT-4o Latest",
+        description: "Latest ChatGPT vision model for debugging code and errors",
+        badge: "Vision • Dynamic"
+      },
+      {
+        id: "gpt-4-turbo",
+        name: "GPT-4 Turbo",
+        description: "GPT-4 Turbo with Vision for visual code debugging",
+        badge: "Vision"
+      },
+      {
         id: "gpt-4.1",
-        name: "gpt-4.1",
-        description: "Best for analyzing code and error messages"
+        name: "GPT-4.1",
+        description: "Best for analyzing code and visual error messages",
+        badge: "Vision"
       },
       {
         id: "gpt-4.1-mini",
-        name: "gpt-4.1-mini",
-        description: "Faster, more cost-effective option"
+        name: "GPT-4.1 Mini",
+        description: "Faster, more cost-effective option for debugging",
+        badge: "Vision • Fast"
       }
     ],
     geminiModels: [
@@ -181,9 +333,9 @@ export function SettingsDialog({ open: externalOpen, onOpenChange }: SettingsDia
   const [open, setOpen] = useState(externalOpen || false);
   const [apiKey, setApiKey] = useState("");
   const [apiProvider, setApiProvider] = useState<APIProvider>("openai");
-  const [extractionModel, setExtractionModel] = useState("gpt-4.1");
-  const [solutionModel, setSolutionModel] = useState("gpt-4.1");
-  const [debuggingModel, setDebuggingModel] = useState("gpt-4.1");
+  const [extractionModel, setExtractionModel] = useState("gpt-4o");
+  const [solutionModel, setSolutionModel] = useState("o3-mini");
+  const [debuggingModel, setDebuggingModel] = useState("gpt-4o");
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
 
@@ -220,9 +372,9 @@ export function SettingsDialog({ open: externalOpen, onOpenChange }: SettingsDia
         .then((config: Config) => {
           setApiKey(config.apiKey || "");
           setApiProvider(config.apiProvider || "openai");
-          setExtractionModel(config.extractionModel || "gpt-4.1");
-          setSolutionModel(config.solutionModel || "gpt-4.1");
-          setDebuggingModel(config.debuggingModel || "gpt-4.1");
+          setExtractionModel(config.extractionModel || "gpt-4o");
+          setSolutionModel(config.solutionModel || "o3-mini");
+          setDebuggingModel(config.debuggingModel || "gpt-4o");
         })
         .catch((error: unknown) => {
           console.error("Failed to load config:", error);
@@ -240,9 +392,9 @@ export function SettingsDialog({ open: externalOpen, onOpenChange }: SettingsDia
     
     // Reset models to defaults when changing provider
     if (provider === "openai") {
-      setExtractionModel("gpt-4.1");
-      setSolutionModel("gpt-4.1");
-      setDebuggingModel("gpt-4.1");
+      setExtractionModel("gpt-4o");
+      setSolutionModel("o3-mini");
+      setDebuggingModel("gpt-4o");
     } else if (provider === "gemini") {
       setExtractionModel("gemini-1.5-pro");
       setSolutionModel("gemini-1.5-pro");
@@ -342,7 +494,7 @@ export function SettingsDialog({ open: externalOpen, onOpenChange }: SettingsDia
                   />
                   <div className="flex flex-col">
                     <p className="font-medium text-white text-sm">OpenAI</p>
-                    <p className="text-xs text-white/60">GPT-4.1 models</p>
+                    <p className="text-xs text-white/60">GPT & Reasoning (o1, o3)</p>
                   </div>
                 </div>
               </div>
@@ -513,6 +665,21 @@ export function SettingsDialog({ open: externalOpen, onOpenChange }: SettingsDia
                 apiProvider === "gemini" ? category.geminiModels :
                 category.anthropicModels;
               
+              // Determine current selected model value
+              const currentValue = 
+                category.key === 'extractionModel' ? extractionModel :
+                category.key === 'solutionModel' ? solutionModel :
+                debuggingModel;
+              
+              // Determine setter function
+              const setValue = 
+                category.key === 'extractionModel' ? setExtractionModel :
+                category.key === 'solutionModel' ? setSolutionModel :
+                setDebuggingModel;
+
+              const isPresetModel = models.some(m => m.id === currentValue);
+              const isCustomModel = apiProvider === "openai" && !isPresetModel && currentValue.length > 0;
+              
               return (
                 <div key={category.key} className="mb-4">
                   <label className="text-sm font-medium text-white mb-1 block">
@@ -522,23 +689,12 @@ export function SettingsDialog({ open: externalOpen, onOpenChange }: SettingsDia
                   
                   <div className="space-y-2">
                     {models.map((m) => {
-                      // Determine which state to use based on category key
-                      const currentValue = 
-                        category.key === 'extractionModel' ? extractionModel :
-                        category.key === 'solutionModel' ? solutionModel :
-                        debuggingModel;
-                      
-                      // Determine which setter function to use
-                      const setValue = 
-                        category.key === 'extractionModel' ? setExtractionModel :
-                        category.key === 'solutionModel' ? setSolutionModel :
-                        setDebuggingModel;
-                        
+                      const isSelected = currentValue === m.id;
                       return (
                         <div
                           key={m.id}
                           className={`p-2 rounded-lg cursor-pointer transition-colors ${
-                            currentValue === m.id
+                            isSelected
                               ? "bg-white/10 border border-white/20"
                               : "bg-black/30 border border-white/5 hover:bg-white/5"
                           }`}
@@ -546,18 +702,63 @@ export function SettingsDialog({ open: externalOpen, onOpenChange }: SettingsDia
                         >
                           <div className="flex items-center gap-2">
                             <div
-                              className={`w-3 h-3 rounded-full ${
-                                currentValue === m.id ? "bg-white" : "bg-white/20"
+                              className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                                isSelected ? "bg-white" : "bg-white/20"
                               }`}
                             />
-                            <div>
-                              <p className="font-medium text-white text-xs">{m.name}</p>
-                              <p className="text-xs text-white/60">{m.description}</p>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-medium text-white text-xs">{m.name}</p>
+                                {m.isThinking && (
+                                  <span className="px-1.5 py-0.5 text-[9px] font-semibold rounded bg-purple-500/25 text-purple-300 border border-purple-500/30">
+                                    Thinking
+                                  </span>
+                                )}
+                                {m.badge && (
+                                  <span className="px-1.5 py-0.5 text-[9px] font-medium rounded bg-white/10 text-white/70 border border-white/10">
+                                    {m.badge}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-white/60 mt-0.5">{m.description}</p>
                             </div>
                           </div>
                         </div>
                       );
                     })}
+
+                    {apiProvider === "openai" && (
+                      <div
+                        className={`p-2 rounded-lg transition-colors ${
+                          isCustomModel
+                            ? "bg-white/10 border border-white/20"
+                            : "bg-black/30 border border-white/5"
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          <div
+                            className={`w-3 h-3 rounded-full flex-shrink-0 mt-1.5 ${
+                              isCustomModel ? "bg-white" : "bg-white/20"
+                            }`}
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                              <p className="font-medium text-white text-xs">Custom Model</p>
+                              <span className="px-1.5 py-0.5 text-[9px] font-medium rounded bg-white/10 text-white/70 border border-white/10">
+                                Custom ID
+                              </span>
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Enter model ID (e.g. o3, ft:gpt-4o:...)"
+                              value={isCustomModel ? currentValue : ""}
+                              onChange={(e) => setValue(e.target.value)}
+                              className="mt-1 w-full bg-black/50 border border-white/10 rounded px-2 py-1 text-xs text-white placeholder-white/40 focus:outline-none focus:border-white/30"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

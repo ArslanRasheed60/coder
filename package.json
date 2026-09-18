@@ -1,5 +1,5 @@
 {
-  "name": "interview-coder-v1",
+  "name": "buddy-boy",
   "version": "1.0.19",
   "main": "./dist-electron/main.js",
   "scripts": {
@@ -15,8 +15,8 @@
     "package-win": "npm run build && electron-builder build --win"
   },
   "build": {
-    "appId": "com.chunginlee.interviewcoder",
-    "productName": "Interview Coder",
+    "appId": "com.buddyboy.app",
+    "productName": "Buddy Boy",
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
@@ -48,7 +48,7 @@
           ]
         }
       ],
-      "artifactName": "Interview-Coder-${arch}.${ext}",
+      "artifactName": "Buddy-Boy-${arch}.${ext}",
       "icon": "assets/icons/mac/icon.icns",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
@@ -57,8 +57,9 @@
       "identity": "Developer ID Application",
       "notarize": true,
       "protocols": {
-        "name": "interview-coder-protocol",
+        "name": "buddy-boy-protocol",
         "schemes": [
+          "buddy-boy",
           "interview-coder"
         ]
       }
@@ -70,8 +71,9 @@
       "icon": "assets/icons/win/icon.ico",
       "artifactName": "${productName}-Windows-${version}.${ext}",
       "protocols": {
-        "name": "interview-coder-protocol",
+        "name": "buddy-boy-protocol",
         "schemes": [
+          "buddy-boy",
           "interview-coder"
         ]
       }
@@ -83,8 +85,9 @@
       "icon": "assets/icons/png/icon-256x256.png",
       "artifactName": "${productName}-Linux-${version}.${ext}",
       "protocols": {
-        "name": "interview-coder-protocol",
+        "name": "buddy-boy-protocol",
         "schemes": [
+          "buddy-boy",
           "interview-coder"
         ]
       }
@@ -93,7 +96,7 @@
       {
         "provider": "github",
         "owner": "ibttf",
-        "repo": "interview-coder",
+        "repo": "buddy-boy",
         "private": false,
         "releaseType": "release"
       }
@@ -112,15 +115,15 @@
     }
   },
   "keywords": [
-    "interview",
     "coding",
-    "interview prep",
-    "technical interview",
-    "tool"
+    "developer-tools",
+    "ai-assistant",
+    "code-companion",
+    "productivity"
   ],
-  "author": "Interview Coder Contributors",
+  "author": "Buddy Boy Contributors",
   "license": "AGPL-3.0-or-later",
-  "description": "An invisible desktop application to help you pass your technical interviews.",
+  "description": "An intelligent desktop AI coding companion to help you code, analyze, and debug faster.",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
     "@electron/notarize": "^2.3.0",

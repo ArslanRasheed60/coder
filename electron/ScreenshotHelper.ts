@@ -50,7 +50,7 @@ export class ScreenshotHelper {
     );
     this.tempDir = path.join(
       app.getPath("temp"),
-      "interview-coder-screenshots"
+      "buddy-boy-screenshots"
     );
 
     // Create directories if they don't exist

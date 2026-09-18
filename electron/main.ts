@@ -156,10 +156,14 @@ function initializeHelpers() {
 
 // Auth callback handler
 
-// Register the interview-coder protocol
+// Register the buddy-boy protocol (and interview-coder as legacy fallback)
 if (process.platform === "darwin") {
+  app.setAsDefaultProtocolClient("buddy-boy")
   app.setAsDefaultProtocolClient("interview-coder")
 } else {
+  app.setAsDefaultProtocolClient("buddy-boy", process.execPath, [
+    path.resolve(process.argv[1] || "")
+  ])
   app.setAsDefaultProtocolClient("interview-coder", process.execPath, [
     path.resolve(process.argv[1] || "")
   ])
@@ -167,7 +171,7 @@ if (process.platform === "darwin") {
 
 // Handle the protocol. In this case, we choose to show an Error Box.
 if (process.defaultApp && process.argv.length >= 2) {
-  app.setAsDefaultProtocolClient("interview-coder", process.execPath, [
+  app.setAsDefaultProtocolClient("buddy-boy", process.execPath, [
     path.resolve(process.argv[1])
   ])
 }
@@ -506,7 +510,22 @@ function loadEnvVariables() {
 async function initializeApp() {
   try {
     // Set custom cache directory to prevent permission issues
-    const appDataPath = path.join(app.getPath('appData'), 'interview-coder-v1')
+    const legacyDataPath = path.join(app.getPath('appData'), 'interview-coder-v1')
+    const appDataPath = path.join(app.getPath('appData'), 'buddy-boy')
+    
+    // If legacy directory exists and new doesn't, copy over config if available
+    if (fs.existsSync(legacyDataPath) && !fs.existsSync(appDataPath)) {
+      try {
+        fs.mkdirSync(appDataPath, { recursive: true })
+        const oldConfig = path.join(legacyDataPath, 'config.json')
+        const newConfig = path.join(appDataPath, 'config.json')
+        if (fs.existsSync(oldConfig) && !fs.existsSync(newConfig)) {
+          fs.copyFileSync(oldConfig, newConfig)
+        }
+      } catch (err) {
+        console.warn('Could not migrate legacy config:', err)
+      }
+    }
     const sessionPath = path.join(appDataPath, 'session')
     const tempPath = path.join(appDataPath, 'temp')
     const cachePath = path.join(appDataPath, 'cache')

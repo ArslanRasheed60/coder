@@ -38,13 +38,13 @@ const modelCategories: ModelCategory[] = [
     description: 'Model used to analyze screenshots and extract problem details',
     openaiModels: [
       {
-        id: "gpt-4o",
-        name: "gpt-4o",
+        id: "gpt-4.1",
+        name: "gpt-4.1",
         description: "Best overall performance for problem extraction"
       },
       {
-        id: "gpt-4o-mini",
-        name: "gpt-4o-mini",
+        id: "gpt-4.1-mini",
+        name: "gpt-4.1-mini",
         description: "Faster, more cost-effective option"
       }
     ],
@@ -84,13 +84,13 @@ const modelCategories: ModelCategory[] = [
     description: 'Model used to generate coding solutions',
     openaiModels: [
       {
-        id: "gpt-4o",
-        name: "gpt-4o",
+        id: "gpt-4.1",
+        name: "gpt-4.1",
         description: "Strong overall performance for coding tasks"
       },
       {
-        id: "gpt-4o-mini",
-        name: "gpt-4o-mini",
+        id: "gpt-4.1-mini",
+        name: "gpt-4.1-mini",
         description: "Faster, more cost-effective option"
       }
     ],
@@ -130,13 +130,13 @@ const modelCategories: ModelCategory[] = [
     description: 'Model used to debug and improve solutions',
     openaiModels: [
       {
-        id: "gpt-4o",
-        name: "gpt-4o",
+        id: "gpt-4.1",
+        name: "gpt-4.1",
         description: "Best for analyzing code and error messages"
       },
       {
-        id: "gpt-4o-mini",
-        name: "gpt-4o-mini",
+        id: "gpt-4.1-mini",
+        name: "gpt-4.1-mini",
         description: "Faster, more cost-effective option"
       }
     ],
@@ -181,9 +181,9 @@ export function SettingsDialog({ open: externalOpen, onOpenChange }: SettingsDia
   const [open, setOpen] = useState(externalOpen || false);
   const [apiKey, setApiKey] = useState("");
   const [apiProvider, setApiProvider] = useState<APIProvider>("openai");
-  const [extractionModel, setExtractionModel] = useState("gpt-4o");
-  const [solutionModel, setSolutionModel] = useState("gpt-4o");
-  const [debuggingModel, setDebuggingModel] = useState("gpt-4o");
+  const [extractionModel, setExtractionModel] = useState("gpt-4.1");
+  const [solutionModel, setSolutionModel] = useState("gpt-4.1");
+  const [debuggingModel, setDebuggingModel] = useState("gpt-4.1");
   const [isLoading, setIsLoading] = useState(false);
   const { showToast } = useToast();
 
@@ -220,9 +220,9 @@ export function SettingsDialog({ open: externalOpen, onOpenChange }: SettingsDia
         .then((config: Config) => {
           setApiKey(config.apiKey || "");
           setApiProvider(config.apiProvider || "openai");
-          setExtractionModel(config.extractionModel || "gpt-4o");
-          setSolutionModel(config.solutionModel || "gpt-4o");
-          setDebuggingModel(config.debuggingModel || "gpt-4o");
+          setExtractionModel(config.extractionModel || "gpt-4.1");
+          setSolutionModel(config.solutionModel || "gpt-4.1");
+          setDebuggingModel(config.debuggingModel || "gpt-4.1");
         })
         .catch((error: unknown) => {
           console.error("Failed to load config:", error);
@@ -240,9 +240,9 @@ export function SettingsDialog({ open: externalOpen, onOpenChange }: SettingsDia
     
     // Reset models to defaults when changing provider
     if (provider === "openai") {
-      setExtractionModel("gpt-4o");
-      setSolutionModel("gpt-4o");
-      setDebuggingModel("gpt-4o");
+      setExtractionModel("gpt-4.1");
+      setSolutionModel("gpt-4.1");
+      setDebuggingModel("gpt-4.1");
     } else if (provider === "gemini") {
       setExtractionModel("gemini-1.5-pro");
       setSolutionModel("gemini-1.5-pro");
@@ -342,7 +342,7 @@ export function SettingsDialog({ open: externalOpen, onOpenChange }: SettingsDia
                   />
                   <div className="flex flex-col">
                     <p className="font-medium text-white text-sm">OpenAI</p>
-                    <p className="text-xs text-white/60">GPT-4o models</p>
+                    <p className="text-xs text-white/60">GPT-4.1 models</p>
                   </div>
                 </div>
               </div>

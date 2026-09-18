@@ -60,11 +60,11 @@ export class ConfigHelper extends EventEmitter {
    */
   private sanitizeModelSelection(model: string, provider: "openai" | "gemini" | "anthropic"): string {
     if (provider === "openai") {
-      // Only allow gpt-4o and gpt-4o-mini for OpenAI
-      const allowedModels = ['gpt-4o', 'gpt-4o-mini'];
+      // Only allow gpt-4.1 and gpt-4.1-mini for OpenAI
+      const allowedModels = ['gpt-4.1', 'gpt-4.1-mini'];
       if (!allowedModels.includes(model)) {
-        console.warn(`Invalid OpenAI model specified: ${model}. Using default model: gpt-4o`);
-        return 'gpt-4o';
+        console.warn(`Invalid OpenAI model specified: ${model}. Using default model: gpt-4.1`);
+        return 'gpt-4.1';
       }
       return model;
     } else if (provider === "gemini")  {
@@ -171,9 +171,9 @@ export class ConfigHelper extends EventEmitter {
       // If provider is changing, reset models to the default for that provider
       if (updates.apiProvider && updates.apiProvider !== currentConfig.apiProvider) {
         if (updates.apiProvider === "openai") {
-          updates.extractionModel = "gpt-4o";
-          updates.solutionModel = "gpt-4o";
-          updates.debuggingModel = "gpt-4o";
+          updates.extractionModel = "gpt-4.1";
+          updates.solutionModel = "gpt-4.1";
+          updates.debuggingModel = "gpt-4.1";
         } else if (updates.apiProvider === "anthropic") {
           updates.extractionModel = "claude-3-7-sonnet-20250219";
           updates.solutionModel = "claude-3-7-sonnet-20250219";
@@ -240,8 +240,11 @@ export class ConfigHelper extends EventEmitter {
     }
     
     if (provider === "openai") {
-      // Basic format validation for OpenAI API keys
-      return /^sk-[a-zA-Z0-9]{32,}$/.test(apiKey.trim());
+      // Basic format validation for OpenAI API keys.
+      // Covers legacy keys (sk-...) and modern project/service/admin keys
+      // (sk-proj-, sk-svcacct-, sk-admin-, sk-None-). The random body is
+      // base64url-encoded, so it may contain letters, digits, "-" and "_".
+      return /^sk-[A-Za-z0-9_-]{20,}$/.test(apiKey.trim());
     } else if (provider === "gemini") {
       // Basic format validation for Gemini API keys (usually alphanumeric with no specific prefix)
       return apiKey.trim().length >= 10; // Assuming Gemini keys are at least 10 chars

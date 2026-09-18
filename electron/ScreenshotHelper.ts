@@ -2,7 +2,7 @@
 
 import path from "node:path";
 import fs from "node:fs";
-import { app } from "electron";
+import { app, systemPreferences } from "electron";
 import { v4 as uuidv4 } from "uuid";
 import { execFile } from "child_process";
 import { promisify } from "util";
@@ -10,6 +10,23 @@ import screenshot from "screenshot-desktop";
 import os from "os";
 
 const execFileAsync = promisify(execFile);
+
+// macOS's `screencapture` binary (used under the hood by the
+// `screenshot-desktop` package) prints this exact message and exits with a
+// non-zero code when the calling process does not currently hold Screen
+// Recording permission (Privacy & Security > Screen Recording). This is
+// unrelated to this app's own "invisible window" content-protection feature
+// — that only affects whether *other* apps can capture *this* window; this
+// is about this app capturing the screen itself.
+const MACOS_SCREEN_RECORDING_DENIED_SIGNATURE =
+  "could not create image from display";
+
+const MACOS_SCREEN_RECORDING_HELP =
+  "Screen Recording permission is missing or stale for this app. Open " +
+  "System Settings > Privacy & Security > Screen Recording, enable it for " +
+  "this app (it may be listed as \"Electron\" in development), then fully " +
+  "quit and relaunch the app — macOS does not apply a new grant to an " +
+  "already-running process.";
 
 export class ScreenshotHelper {
   private screenshotQueue: string[] = [];
@@ -163,6 +180,34 @@ export class ScreenshotHelper {
         return await this.captureWindowsScreenshot();
       }
 
+      // On macOS, fail fast with an actionable message if Screen Recording
+      // permission is known to be missing, instead of spending a hide/show
+      // cycle on a capture that's guaranteed to fail. This check can itself
+      // be unavailable or report a stale "granted" status, so it's a
+      // best-effort short-circuit, not a replacement for the catch below.
+      if (process.platform === "darwin") {
+        try {
+          const status = systemPreferences.getMediaAccessStatus("screen");
+          if (status !== "granted") {
+            console.error(
+              `Screen Recording permission status is "${status}", not "granted".`
+            );
+            throw new Error(MACOS_SCREEN_RECORDING_HELP);
+          }
+        } catch (permCheckError) {
+          if (permCheckError.message === MACOS_SCREEN_RECORDING_HELP) {
+            throw permCheckError;
+          }
+          // getMediaAccessStatus itself failed (e.g. unsupported Electron
+          // version) — don't block capture on the preflight, fall through
+          // to the real attempt below.
+          console.warn(
+            "Could not check Screen Recording permission status:",
+            permCheckError
+          );
+        }
+      }
+
       // For macOS and Linux, use buffer directly
       console.log("Taking screenshot on non-Windows platform");
       const buffer = await screenshot({ format: "png" });
@@ -172,6 +217,21 @@ export class ScreenshotHelper {
       return buffer;
     } catch (error) {
       console.error("Error capturing screenshot:", error);
+
+      if (error.message === MACOS_SCREEN_RECORDING_HELP) {
+        // Already our own actionable message (thrown by the preflight
+        // check above) — pass it through as-is, no need to re-wrap it.
+        throw error;
+      }
+
+      if (
+        process.platform === "darwin" &&
+        typeof error.message === "string" &&
+        error.message.includes(MACOS_SCREEN_RECORDING_DENIED_SIGNATURE)
+      ) {
+        throw new Error(MACOS_SCREEN_RECORDING_HELP);
+      }
+
       throw new Error(`Failed to capture screenshot: ${error.message}`);
     }
   }

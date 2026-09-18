@@ -496,7 +496,7 @@ export class ProcessingHelper {
 
         // Send to OpenAI Vision API
         const extractionResponse = await this.openaiClient.chat.completions.create({
-          model: config.extractionModel || "gpt-4o",
+          model: config.extractionModel || "gpt-4.1",
           messages: messages,
           max_tokens: 4000,
           temperature: 0.2
@@ -775,7 +775,7 @@ Your solution should be efficient, well-commented, and handle edge cases.
         
         // Send to OpenAI API
         const solutionResponse = await this.openaiClient.chat.completions.create({
-          model: config.solutionModel || "gpt-4o",
+          model: config.solutionModel || "gpt-4.1",
           messages: [
             { role: "system", content: "You are an expert coding interview assistant. Provide clear, optimal solutions with detailed explanations." },
             { role: "user", content: promptText }
@@ -1067,7 +1067,7 @@ If you include code examples, use proper markdown code blocks with language spec
         }
 
         const debugResponse = await this.openaiClient.chat.completions.create({
-          model: config.debuggingModel || "gpt-4o",
+          model: config.debuggingModel || "gpt-4.1",
           messages: messages,
           max_tokens: 4000,
           temperature: 0.2

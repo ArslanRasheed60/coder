@@ -100,7 +100,7 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
                     const result = await window.electronAPI.triggerScreenshot()
                     if (!result.success) {
                       console.error("Failed to take screenshot:", result.error)
-                      showToast("Error", "Failed to take screenshot", "error")
+                      showToast("Error", result.error || "Failed to take screenshot", "error")
                     }
                   } catch (error) {
                     console.error("Error taking screenshot:", error)
@@ -293,7 +293,7 @@ const SolutionCommands: React.FC<SolutionCommandsProps> = ({
                                   )
                                   showToast(
                                     "Error",
-                                    "Failed to take screenshot",
+                                    result.error || "Failed to take screenshot",
                                     "error"
                                   )
                                 }

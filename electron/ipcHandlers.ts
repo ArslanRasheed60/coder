@@ -165,10 +165,10 @@ export function initializeIpcHandlers(deps: IIpcHandlerDeps): void {
         return { success: true }
       } catch (error) {
         console.error("Error triggering screenshot:", error)
-        return { error: "Failed to trigger screenshot" }
+        return { success: false, error: error?.message || "Failed to trigger screenshot" }
       }
     }
-    return { error: "No main window available" }
+    return { success: false, error: "No main window available" }
   })
 
   ipcMain.handle("take-screenshot", async () => {

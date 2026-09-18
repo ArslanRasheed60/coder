@@ -85,6 +85,7 @@ export interface IShortcutsHelperDeps {
   moveWindowRight: () => void
   moveWindowUp: () => void
   moveWindowDown: () => void
+  resetWindowPosition?: () => void
 }
 
 export interface IIpcHandlerDeps {
@@ -138,19 +139,11 @@ function initializeHelpers() {
     setView,
     isVisible: () => state.isWindowVisible,
     toggleMainWindow,
-    moveWindowLeft: () =>
-      moveWindowHorizontal((x) =>
-        Math.max(-(state.windowSize?.width || 0) / 2, x - state.step)
-      ),
-    moveWindowRight: () =>
-      moveWindowHorizontal((x) =>
-        Math.min(
-          state.screenWidth - (state.windowSize?.width || 0) / 2,
-          x + state.step
-        )
-      ),
+    moveWindowLeft: () => moveWindowHorizontal((x) => x - state.step),
+    moveWindowRight: () => moveWindowHorizontal((x) => x + state.step),
     moveWindowUp: () => moveWindowVertical((y) => y - state.step),
-    moveWindowDown: () => moveWindowVertical((y) => y + state.step)
+    moveWindowDown: () => moveWindowVertical((y) => y + state.step),
+    resetWindowPosition
   } as IShortcutsHelperDeps)
 }
 
@@ -204,11 +197,14 @@ async function createWindow(): Promise<void> {
   }
 
   const primaryDisplay = screen.getPrimaryDisplay()
-  const workArea = primaryDisplay.workAreaSize
+  const workArea = primaryDisplay.workArea
   state.screenWidth = workArea.width
   state.screenHeight = workArea.height
   state.step = 60
-  state.currentY = 50
+  if (!state.currentX) {
+    state.currentX = Math.round(workArea.x + (workArea.width - 800) / 2)
+  }
+  state.currentY = Math.round(workArea.y + 50)
 
   const windowSettings: Electron.BrowserWindowConstructorOptions = {
     width: 800,
@@ -216,7 +212,7 @@ async function createWindow(): Promise<void> {
     minWidth: 750,
     minHeight: 550,
     x: state.currentX,
-    y: 50,
+    y: state.currentY,
     alwaysOnTop: true,
     webPreferences: {
       nodeIntegration: false,
@@ -437,57 +433,81 @@ function toggleMainWindow(): void {
 
 // Window movement functions
 function moveWindowHorizontal(updateFn: (x: number) => number): void {
-  if (!state.mainWindow) return
-  state.currentX = updateFn(state.currentX)
-  state.mainWindow.setPosition(
-    Math.round(state.currentX),
-    Math.round(state.currentY)
-  )
+  if (!state.mainWindow || state.mainWindow.isDestroyed()) return
+
+  const [currentX, currentY] = state.mainWindow.getPosition()
+  const bounds = state.mainWindow.getBounds()
+  const currentDisplay = screen.getDisplayMatching(bounds)
+  const workArea = currentDisplay.workArea
+  const windowWidth = bounds.width || 400
+
+  // Allow window to travel anywhere across the active monitor
+  const minX = workArea.x - (windowWidth * 2) / 3
+  const maxX = workArea.x + workArea.width - windowWidth / 3
+
+  const targetX = updateFn(currentX)
+  const clampedX = Math.round(Math.max(minX, Math.min(maxX, targetX)))
+
+  console.log(`[Move Horizontal] from ${currentX} to ${clampedX}`)
+
+  state.currentX = clampedX
+  state.currentY = currentY
+  state.windowPosition = { x: clampedX, y: currentY }
+  state.mainWindow.setPosition(clampedX, currentY)
 }
 
 function moveWindowVertical(updateFn: (y: number) => number): void {
-  if (!state.mainWindow) return
+  if (!state.mainWindow || state.mainWindow.isDestroyed()) return
 
-  const newY = updateFn(state.currentY)
-  // Allow window to go 2/3 off screen in either direction
-  const maxUpLimit = (-(state.windowSize?.height || 0) * 2) / 3
-  const maxDownLimit =
-    state.screenHeight + ((state.windowSize?.height || 0) * 2) / 3
+  const [currentX, currentY] = state.mainWindow.getPosition()
+  const bounds = state.mainWindow.getBounds()
+  const currentDisplay = screen.getDisplayMatching(bounds)
+  const workArea = currentDisplay.workArea
+  const windowHeight = bounds.height || 400
 
-  // Log the current state and limits
-  console.log({
-    newY,
-    maxUpLimit,
-    maxDownLimit,
-    screenHeight: state.screenHeight,
-    windowHeight: state.windowSize?.height,
-    currentY: state.currentY
-  })
+  // Allow window to travel anywhere vertically on the active monitor
+  const minY = workArea.y - (windowHeight * 2) / 3
+  const maxY = workArea.y + workArea.height - windowHeight / 3
 
-  // Only update if within bounds
-  if (newY >= maxUpLimit && newY <= maxDownLimit) {
-    state.currentY = newY
-    state.mainWindow.setPosition(
-      Math.round(state.currentX),
-      Math.round(state.currentY)
-    )
-  }
+  const targetY = updateFn(currentY)
+  const clampedY = Math.round(Math.max(minY, Math.min(maxY, targetY)))
+
+  console.log(`[Move Vertical] from ${currentY} to ${clampedY}`)
+
+  state.currentX = currentX
+  state.currentY = clampedY
+  state.windowPosition = { x: currentX, y: clampedY }
+  state.mainWindow.setPosition(currentX, clampedY)
+}
+
+function resetWindowPosition(): void {
+  if (!state.mainWindow || state.mainWindow.isDestroyed()) return
+  const bounds = state.mainWindow.getBounds()
+  const currentDisplay = screen.getDisplayMatching(bounds)
+  const workArea = currentDisplay.workArea
+  const resetX = Math.round(workArea.x + (workArea.width - bounds.width) / 2)
+  const resetY = Math.round(workArea.y + 50)
+
+  state.currentX = resetX
+  state.currentY = resetY
+  state.windowPosition = { x: resetX, y: resetY }
+  state.mainWindow.setPosition(resetX, resetY)
+  console.log(`[Reset Window] Center position: (${resetX}, ${resetY})`)
 }
 
 // Window dimension functions
 function setWindowDimensions(width: number, height: number): void {
   if (!state.mainWindow?.isDestroyed()) {
-    const [currentX, currentY] = state.mainWindow.getPosition()
-    const primaryDisplay = screen.getPrimaryDisplay()
-    const workArea = primaryDisplay.workAreaSize
-    const maxWidth = Math.floor(workArea.width * 0.5)
+    const bounds = state.mainWindow.getBounds()
+    const currentDisplay = screen.getDisplayMatching(bounds)
+    const workArea = currentDisplay.workArea
+    const maxWidth = Math.floor(workArea.width * 0.8)
+    const targetWidth = Math.min(Math.max(Math.round(width + 32), 400), maxWidth)
+    const targetHeight = Math.ceil(height)
 
-    state.mainWindow.setBounds({
-      x: Math.min(currentX, workArea.width - maxWidth),
-      y: currentY,
-      width: Math.min(width + 32, maxWidth),
-      height: Math.ceil(height)
-    })
+    // Adjust ONLY window size so position is preserved
+    state.mainWindow.setSize(targetWidth, targetHeight)
+    state.windowSize = { width: targetWidth, height: targetHeight }
   }
 }
 
@@ -564,17 +584,8 @@ async function initializeApp() {
       toggleMainWindow,
       clearQueues,
       setView,
-      moveWindowLeft: () =>
-        moveWindowHorizontal((x) =>
-          Math.max(-(state.windowSize?.width || 0) / 2, x - state.step)
-        ),
-      moveWindowRight: () =>
-        moveWindowHorizontal((x) =>
-          Math.min(
-            state.screenWidth - (state.windowSize?.width || 0) / 2,
-            x + state.step
-          )
-        ),
+      moveWindowLeft: () => moveWindowHorizontal((x) => x - state.step),
+      moveWindowRight: () => moveWindowHorizontal((x) => x + state.step),
       moveWindowUp: () => moveWindowVertical((y) => y - state.step),
       moveWindowDown: () => moveWindowVertical((y) => y + state.step)
     })
@@ -714,6 +725,7 @@ export {
   setWindowDimensions,
   moveWindowHorizontal,
   moveWindowVertical,
+  resetWindowPosition,
   getMainWindow,
   getView,
   setView,

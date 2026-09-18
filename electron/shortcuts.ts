@@ -72,6 +72,9 @@ export class ShortcutsHelper {
       // Update the view state to 'queue'
       this.deps.setView("queue")
 
+      // Reset window position to center-top
+      this.deps.resetWindowPosition?.()
+
       // Notify renderer process to switch view to 'queue'
       const mainWindow = this.deps.getMainWindow()
       if (mainWindow && !mainWindow.isDestroyed()) {
